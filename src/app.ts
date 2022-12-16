@@ -1,8 +1,21 @@
 import express from "express";
+import mongoose from "mongoose";
+import { userRouter } from "./routes/users";
+import { fakeAuth } from "./middlewares/authorization";
 
 const app = express();
-const port = 3000;
+const { PORT = 3000 } = process.env;
 
-app.listen(port, () => {
+mongoose.connect("mongodb://localhost:27017/mestodb")
+  .then(() => console.log("db connected"))
+  .catch((err) => console.log(err))
+
+app.use(express.json());
+app.use(express.urlencoded({extended: true}));
+app.use(fakeAuth);
+app.use(userRouter);
+
+
+app.listen(PORT, () => {
   console.log("server started");
 });
