@@ -2,6 +2,7 @@ import express from "express";
 import mongoose from "mongoose";
 import { userRouter } from "./routes/users";
 import { fakeAuth } from "./middlewares/authorization";
+import { cardRouter } from "./routes/cards";
 
 const app = express();
 const { PORT = 3000 } = process.env;
@@ -14,6 +15,7 @@ app.use(express.json());
 app.use(express.urlencoded({extended: true}));
 app.use(fakeAuth);
 app.use(userRouter);
+app.use(cardRouter);
 
 
 app.listen(PORT, () => {

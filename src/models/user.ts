@@ -1,7 +1,8 @@
-import mongoose, { Schema, model } from "mongoose";
-import {User} from "../types/model-types";
+import mongoose, { Schema } from "mongoose";
+import {TUser} from "../types/model-types";
 
 const userSchema = new Schema({
+  _id: String,
   name: {
     type: String,
     required: true,
@@ -20,4 +21,4 @@ const userSchema = new Schema({
   }
 });
 
-export default mongoose.model<User>("user", userSchema)
+export default mongoose.model<TUser>("user", userSchema)

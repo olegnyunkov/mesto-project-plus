@@ -1,28 +1,32 @@
-import mongoose, {Schema, model, Types} from "mongoose";
-import {Card} from "../types/model-types";
+import mongoose, { Schema } from "mongoose";
+import {TCard} from "../types/model-types";
 
 const cardSchema = new Schema({
   name: {
     type: String,
-    required: true
+    required: true,
+    minLength: 2,
+    maxLength: 30
   },
   link: {
     type: String,
     required: true
   },
   owner: {
-    type: Types.ObjectId,
-    required: true
+    type: Schema.Types.ObjectId,
+    required: true,
+    ref: "user"
   },
-  likes: {
-    type: Types.ObjectId,
-    default: true
-  },
+  likes: [{
+    type: Schema.Types.ObjectId,
+    default: [],
+    ref: "user"
+  }],
   createdAt: {
     type: Date,
     default: Date.now
   },
 });
 
-export default mongoose.model<Card>("card", cardSchema)
+export default mongoose.model<TCard>("card", cardSchema)
 
