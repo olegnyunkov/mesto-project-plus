@@ -1,6 +1,6 @@
-//@ts-nocheck
 import {Request, Response} from "express";
 import card from "../models/card";
+import {ObjectId} from "mongoose";
 
 export const getCards = (req: Request, res: Response) => {
   card.find({})
@@ -36,7 +36,7 @@ export const likeCard = (req: Request, res: Response) => {
 export const dislikeCard = (req: Request, res: Response) => {
   card.findByIdAndUpdate(
     req.params.cardId,
-    { $pull: { likes: req.user._id } },
+    { $pull: { likes: req.user._id as ObjectId } },
     { new: true },
   )
     .then((info) => res.send({info}))

@@ -22,17 +22,17 @@ export const getUserId = (req: Request, res: Response) => {
 }
 
 export const updateProfile = (req: Request, res: Response) => {
-  const id = req.user?._id;
+  const {_id} = req.user;
   const { name, about } = req.body;
-  user.findByIdAndUpdate(id, name, about)
+  user.findByIdAndUpdate(_id, {name, about})
     .then((info) => res.send({info}))
     .catch((err) => console.log(err))
 }
 
 export const updateAvatar = (req: Request, res: Response) => {
-  const id = req.user?._id;
+  const {_id} = req.user;
   const { avatar } = req.body;
-  user.findByIdAndUpdate(id, avatar)
+  user.findByIdAndUpdate(_id, {avatar}, {new: true})
     .then((info) => res.send({info}))
     .catch((err) => console.log(err))
 }
