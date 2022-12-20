@@ -1,11 +1,12 @@
 import {Request, Response} from "express";
 import card from "../models/card";
 import {ObjectId} from "mongoose";
+import {DEFAULT_ERROR, NOT_FOUND, WRONG_DATA} from "../utils/response-errors";
 
 export const getCards = (req: Request, res: Response) => {
   card.find({})
     .then((info) => res.send({info}))
-    .catch((err) => console.log(err))
+    .catch(() => res.status(DEFAULT_ERROR).send("Ошибка сервера"))
 };
 
 export const createCard = (req: Request, res: Response) => {
@@ -13,14 +14,26 @@ export const createCard = (req: Request, res: Response) => {
   const { name, link } = req.body;
   card.create({ name, link, owner: id })
     .then((info) => res.status(201).send({info}))
-    .catch((err) => console.log(err))
+    .catch(() => {
+      if(!name || !link) {
+        res.status(WRONG_DATA).send("Переданы некорректные данные при создании карточки")
+      } else {
+        res.status(DEFAULT_ERROR).send("Ошибка сервера")
+      }
+    })
 };
 
 export const deleteCard = (req: Request, res: Response) => {
   const { cardId } = req.params;
   card.deleteOne({cardId})
     .then((info) => res.send({info}))
-    .catch((err) => console.log(err))
+    .catch(() => {
+      if(!cardId) {
+        res.status(WRONG_DATA).send("Переданы некорректные данные для удаления карточки")
+      } else {
+        res.status(DEFAULT_ERROR).send("Ошибка сервера")
+      }
+    })
 };
 
 export const likeCard = (req: Request, res: Response) => {
@@ -30,7 +43,13 @@ export const likeCard = (req: Request, res: Response) => {
     { new: true },
   )
     .then((info) => res.send({info}))
-    .catch((err) => console.log(err))
+    .catch(() => {
+      if(!req.params.cardId) {
+        res.status(NOT_FOUND).send("Пользователь не найден")
+      } else {
+        res.status(DEFAULT_ERROR).send("Ошибка сервера")
+      }
+    })
 };
 
 export const dislikeCard = (req: Request, res: Response) => {
@@ -40,5 +59,11 @@ export const dislikeCard = (req: Request, res: Response) => {
     { new: true },
   )
     .then((info) => res.send({info}))
-    .catch((err) => console.log(err))
+    .catch(() => {
+      if(!req.params.cardId) {
+        res.status(NOT_FOUND).send("Пользователь не найден")
+      } else {
+        res.status(DEFAULT_ERROR).send("Ошибка сервера")
+      }
+    })
 }
