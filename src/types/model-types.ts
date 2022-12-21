@@ -1,4 +1,4 @@
-import {Schema} from "mongoose";
+import { Schema } from 'mongoose';
 
 export type TUser = {
   _id: string;
