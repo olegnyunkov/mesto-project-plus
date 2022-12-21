@@ -1,12 +1,12 @@
 import { Request, Response } from 'express';
 import { ObjectId } from 'mongoose';
 import card from '../models/card';
-import { DEFAULT_ERROR, NOT_FOUND, WRONG_DATA } from '../utils/response-errors';
+import { DEFAULT_ERROR, WRONG_DATA } from '../utils/response-errors';
 
 export const getCards = (req: Request, res: Response) => {
   card.find({})
     .then((info) => res.send({ info }))
-    .catch(() => res.status(DEFAULT_ERROR).send('Ошибка сервера'));
+    .catch(() => res.status(DEFAULT_ERROR).send({ message: 'Ошибка сервера' }));
 };
 
 export const createCard = (req: Request, res: Response) => {
@@ -14,11 +14,11 @@ export const createCard = (req: Request, res: Response) => {
   const { name, link } = req.body;
   card.create({ name, link, owner: id })
     .then((info) => res.status(201).send({ info }))
-    .catch(() => {
-      if (!name || !link) {
-        res.status(WRONG_DATA).send('Переданы некорректные данные при создании карточки');
+    .catch((err) => {
+      if (err.name === 'ValidationError') {
+        res.status(WRONG_DATA).send({ message: 'Переданы некорректные данные для создания карточки' });
       } else {
-        res.status(DEFAULT_ERROR).send('Ошибка сервера');
+        res.status(DEFAULT_ERROR).send({ message: 'Ошибка сервера' });
       }
     });
 };
@@ -27,11 +27,11 @@ export const deleteCard = (req: Request, res: Response) => {
   const { cardId } = req.params;
   card.deleteOne({ cardId })
     .then((info) => res.send({ info }))
-    .catch(() => {
-      if (!cardId) {
-        res.status(WRONG_DATA).send('Переданы некорректные данные для удаления карточки');
+    .catch((err) => {
+      if (err.name === 'CastError') {
+        res.status(WRONG_DATA).send({ message: 'Переданы некорректные данные' });
       } else {
-        res.status(DEFAULT_ERROR).send('Ошибка сервера');
+        res.status(DEFAULT_ERROR).send({ message: 'Ошибка сервера' });
       }
     });
 };
@@ -43,11 +43,11 @@ export const likeCard = (req: Request, res: Response) => {
     { new: true },
   )
     .then((info) => res.send({ info }))
-    .catch(() => {
-      if (!req.params.cardId) {
-        res.status(NOT_FOUND).send('Пользователь не найден');
+    .catch((err) => {
+      if (err.name === 'CastError') {
+        res.status(WRONG_DATA).send({ message: 'Переданы некорректные данные' });
       } else {
-        res.status(DEFAULT_ERROR).send('Ошибка сервера');
+        res.status(DEFAULT_ERROR).send({ message: 'Ошибка сервера' });
       }
     });
 };
@@ -59,11 +59,11 @@ export const dislikeCard = (req: Request, res: Response) => {
     { new: true },
   )
     .then((info) => res.send({ info }))
-    .catch(() => {
-      if (!req.params.cardId) {
-        res.status(NOT_FOUND).send('Пользователь не найден');
+    .catch((err) => {
+      if (err.name === 'CastError') {
+        res.status(WRONG_DATA).send({ message: 'Переданы некорректные данные' });
       } else {
-        res.status(DEFAULT_ERROR).send('Ошибка сервера');
+        res.status(DEFAULT_ERROR).send({ message: 'Ошибка сервера' });
       }
     });
 };
