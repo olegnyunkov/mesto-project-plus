@@ -1,5 +1,5 @@
-import mongoose, { Schema } from "mongoose";
-import {TUser} from "../types/model-types";
+import mongoose, { Schema } from 'mongoose';
+import { TUser } from '../types/model-types';
 
 const userSchema = new Schema({
   _id: String,
@@ -7,18 +7,18 @@ const userSchema = new Schema({
     type: String,
     required: true,
     minLength: 2,
-    maxLength: 30
+    maxLength: 30,
   },
   about: {
     type: String,
     required: true,
     minLength: 2,
-    maxLength: 200
+    maxLength: 200,
   },
   avatar: {
     type: String,
-    required: true
-  }
+    required: true,
+  },
 });
 
-export default mongoose.model<TUser>("user", userSchema)
+export default mongoose.model<TUser>('user', userSchema);
