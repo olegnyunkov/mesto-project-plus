@@ -1,10 +1,12 @@
 import { Request, Response } from 'express';
+import bcrypt from 'bcrypt';
 import user from '../models/user';
-import {DEFAULT_ERROR, NOT_FOUND, WRONG_DATA} from '../utils/response-errors';
+import { DEFAULT_ERROR, NOT_FOUND, WRONG_DATA } from '../utils/response-errors';
 
 export const createUser = (req: Request, res: Response) => {
-  const { name, about, avatar } = req.body;
-  user.create({ name, about, avatar })
+  const { name, about, avatar, email, password } = req.body;
+  bcrypt.hash(password, 10)
+    .then((hash) => user.create({ name, about, avatar, email, password: hash }))
     .then((info) => res.status(201).send({ info }))
     .catch((err) => {
       if (err.name === 'ValidationError') {

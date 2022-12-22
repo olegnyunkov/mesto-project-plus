@@ -4,7 +4,9 @@ export type TUser = {
   _id: string;
   name: string;
   about: string;
-  avatar: string
+  avatar: string;
+  email: string;
+  password: string;
 }
 
 export type TCard = {
