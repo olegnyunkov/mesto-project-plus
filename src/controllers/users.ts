@@ -1,11 +1,10 @@
-import { Request, Response } from 'express';
+import { NextFunction, Request, Response } from 'express';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import user from '../models/user';
-import { DEFAULT_ERROR, NOT_FOUND, WRONG_DATA } from '../utils/response-errors';
 import { IExtendedRequestId } from '../types/model-types';
 
-export const createUser = (req: Request, res: Response) => {
+export const createUser = (req: Request, res: Response, next: NextFunction) => {
   const {
     name, about, avatar, email, password,
   } = req.body;
@@ -16,72 +15,42 @@ export const createUser = (req: Request, res: Response) => {
       });
     })
     .then((info) => res.status(201).send({ info }))
-    .catch((err) => {
-      if (err.name === 'ValidationError') {
-        res.status(WRONG_DATA).send({ message: 'Переданы некорректные данные при создании пользователя' });
-      } else {
-        res.status(DEFAULT_ERROR).send({ message: 'Ошибка сервера' });
-      }
-    });
+    .catch(next);
 };
 
-export const getUsers = (req: Request, res: Response) => {
+export const getUsers = (req: Request, res: Response, next: NextFunction) => {
   user.find({})
     .then((info) => res.send({ info }))
-    .catch(() => res.status(DEFAULT_ERROR).send({ message: 'Ошибка сервера' }));
+    .catch(next);
 };
 
-export const getUserId = (req: Request, res: Response) => {
+export const getUserId = (req: Request, res: Response, next: NextFunction) => {
   const { userId } = req.params;
   user.findById(userId)
     .orFail(new Error('NotFound'))
     .then((info) => res.send({ info }))
-    .catch((err) => {
-      if (err.name === 'CastError') {
-        res.status(WRONG_DATA).send({ message: 'Переданы некорректные данные' });
-      } else if (err.message === 'NotFound') {
-        res.status(NOT_FOUND).send({ message: 'Объект не найден' });
-      } else {
-        res.status(DEFAULT_ERROR).send({ message: 'Ошибка сервера' });
-      }
-    });
+    .catch(next);
 };
 
-export const updateProfile = (req: IExtendedRequestId, res: Response) => {
+export const updateProfile = (req: IExtendedRequestId, res: Response, next: NextFunction) => {
   const id = req.user && req.user._id;
   const { name, about } = req.body;
   user.findByIdAndUpdate(id, { name, about }, { new: true, runValidators: true })
     .orFail(new Error('NotFound'))
     .then((info) => res.send({ info }))
-    .catch((err) => {
-      if (err.name === 'ValidationError') {
-        res.status(WRONG_DATA).send({ message: 'Переданы некорректные данные для обновления пользователя' });
-      } else if (err.message === 'NotFound') {
-        res.status(NOT_FOUND).send({ message: 'Объект не найден' });
-      } else {
-        res.status(DEFAULT_ERROR).send({ message: 'Ошибка сервера' });
-      }
-    });
+    .catch(next);
 };
 
-export const updateAvatar = (req: IExtendedRequestId, res: Response) => {
+export const updateAvatar = (req: IExtendedRequestId, res: Response, next: NextFunction) => {
   const id = req.user && req.user._id;
   const { avatar } = req.body;
   user.findByIdAndUpdate(id, { avatar }, { new: true, runValidators: true })
     .orFail(new Error('NotFound'))
     .then((info) => res.send({ info }))
-    .catch((err) => {
-      if (err.name === 'ValidationError') {
-        res.status(WRONG_DATA).send({ message: 'Переданы некорректные данные для обновления аватара' });
-      } else if (err.message === 'NotFound') {
-        res.status(NOT_FOUND).send({ message: 'Объект не найден' });
-      } else {
-        res.status(DEFAULT_ERROR).send({ message: 'Ошибка сервера' });
-      }
-    });
+    .catch(next);
 };
 
-export const login = (req: Request, res: Response) => {
+export const login = (req: Request, res: Response, next: NextFunction) => {
   const { email, password } = req.body;
   user.findOne({ email }).select('+password')
     .then((info) => {
@@ -97,23 +66,13 @@ export const login = (req: Request, res: Response) => {
           res.send({ token });
         });
     })
-    .catch(() => {
-      res.status(DEFAULT_ERROR).send({ message: 'Ошибка сервера' });
-    });
+    .catch(next);
 };
 
-export const getProfile = (req: IExtendedRequestId, res: Response) => {
+export const getProfile = (req: IExtendedRequestId, res: Response, next: NextFunction) => {
   const id = req.user && req.user._id;
   user.findById({ id })
     .orFail(new Error('NotFound'))
     .then((info) => res.send({ info }))
-    .catch((err) => {
-      if (err.name === 'CastError') {
-        res.status(WRONG_DATA).send({ message: 'Переданы некорректные данные' });
-      } else if (err.message === 'NotFound') {
-        res.status(NOT_FOUND).send({ message: 'Объект не найден' });
-      } else {
-        res.status(DEFAULT_ERROR).send({ message: 'Ошибка сервера' });
-      }
-    });
+    .catch(next);
 };

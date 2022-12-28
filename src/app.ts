@@ -9,6 +9,7 @@ import { cardRouter } from './routes/cards';
 import { createUser, login } from './controllers/users';
 import { requestLogger, errorLogger } from './middlewares/logger';
 import { createUserValidation, loginValidation } from './utils/validation';
+import { resError } from './middlewares/error';
 
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
@@ -39,7 +40,7 @@ app.use(userRouter);
 app.use(cardRouter);
 app.use(errorLogger);
 app.use(errors());
-// app.use(errorMiddleware);
+app.use(resError);
 
 app.listen(PORT, () => {
   console.log('server started');
