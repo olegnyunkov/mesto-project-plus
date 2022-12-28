@@ -3,7 +3,6 @@ import validator from 'validator';
 import { TUser } from '../types/model-types';
 
 const userSchema = new Schema({
-  _id: String,
   name: {
     type: String,
     minLength: 2,
@@ -26,12 +25,14 @@ const userSchema = new Schema({
     unique: true,
     validate: {
       validator: (email: string) => validator.isEmail(email),
-      message: 'Неправильно указан фдрес электронной почты',
+      message: 'Неправильно указан адрес электронной почты',
     },
   },
   password: {
     type: String,
     required: true,
+    minlength: 8,
+    select: false,
   },
 });
 

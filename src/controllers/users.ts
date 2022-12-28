@@ -1,12 +1,20 @@
 import { Request, Response } from 'express';
 import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
 import user from '../models/user';
 import { DEFAULT_ERROR, NOT_FOUND, WRONG_DATA } from '../utils/response-errors';
+import { IExtendedRequestId } from '../types/model-types';
 
 export const createUser = (req: Request, res: Response) => {
-  const { name, about, avatar, email, password } = req.body;
+  const {
+    name, about, avatar, email, password,
+  } = req.body;
   bcrypt.hash(password, 10)
-    .then((hash) => user.create({ name, about, avatar, email, password: hash }))
+    .then((hash) => {
+      user.create({
+        name, about, avatar, email, password: hash,
+      });
+    })
     .then((info) => res.status(201).send({ info }))
     .catch((err) => {
       if (err.name === 'ValidationError') {
@@ -39,10 +47,10 @@ export const getUserId = (req: Request, res: Response) => {
     });
 };
 
-export const updateProfile = (req: Request, res: Response) => {
-  const { _id } = req.user;
+export const updateProfile = (req: IExtendedRequestId, res: Response) => {
+  const id = req.user && req.user._id;
   const { name, about } = req.body;
-  user.findByIdAndUpdate(_id, { name, about }, { new: true, runValidators: true })
+  user.findByIdAndUpdate(id, { name, about }, { new: true, runValidators: true })
     .orFail(new Error('NotFound'))
     .then((info) => res.send({ info }))
     .catch((err) => {
@@ -56,15 +64,52 @@ export const updateProfile = (req: Request, res: Response) => {
     });
 };
 
-export const updateAvatar = (req: Request, res: Response) => {
-  const { _id } = req.user;
+export const updateAvatar = (req: IExtendedRequestId, res: Response) => {
+  const id = req.user && req.user._id;
   const { avatar } = req.body;
-  user.findByIdAndUpdate(_id, { avatar }, { new: true, runValidators: true })
+  user.findByIdAndUpdate(id, { avatar }, { new: true, runValidators: true })
     .orFail(new Error('NotFound'))
     .then((info) => res.send({ info }))
     .catch((err) => {
       if (err.name === 'ValidationError') {
         res.status(WRONG_DATA).send({ message: 'Переданы некорректные данные для обновления аватара' });
+      } else if (err.message === 'NotFound') {
+        res.status(NOT_FOUND).send({ message: 'Объект не найден' });
+      } else {
+        res.status(DEFAULT_ERROR).send({ message: 'Ошибка сервера' });
+      }
+    });
+};
+
+export const login = (req: Request, res: Response) => {
+  const { email, password } = req.body;
+  user.findOne({ email }).select('+password')
+    .then((info) => {
+      if (!info) {
+        return Promise.reject(new Error('Неправильные почта или пароль'));
+      }
+      return bcrypt.compare(password, info.password)
+        .then((matched) => {
+          if (!matched) {
+            return Promise.reject(new Error('Неправильные почта или пароль'));
+          }
+          const token = jwt.sign({ _id: info._id }, 'some-secret-key', { expiresIn: '7d' });
+          res.send({ token });
+        });
+    })
+    .catch(() => {
+      res.status(DEFAULT_ERROR).send({ message: 'Ошибка сервера' });
+    });
+};
+
+export const getProfile = (req: IExtendedRequestId, res: Response) => {
+  const id = req.user && req.user._id;
+  user.findById({ id })
+    .orFail(new Error('NotFound'))
+    .then((info) => res.send({ info }))
+    .catch((err) => {
+      if (err.name === 'CastError') {
+        res.status(WRONG_DATA).send({ message: 'Переданы некорректные данные' });
       } else if (err.message === 'NotFound') {
         res.status(NOT_FOUND).send({ message: 'Объект не найден' });
       } else {

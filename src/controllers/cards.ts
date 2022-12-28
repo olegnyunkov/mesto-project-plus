@@ -1,7 +1,8 @@
 import { Request, Response } from 'express';
 import { ObjectId } from 'mongoose';
 import card from '../models/card';
-import {DEFAULT_ERROR, NOT_FOUND, WRONG_DATA} from '../utils/response-errors';
+import { DEFAULT_ERROR, NOT_FOUND, WRONG_DATA } from '../utils/response-errors';
+import { IExtendedRequestId } from '../types/model-types';
 
 export const getCards = (req: Request, res: Response) => {
   card.find({})
@@ -9,8 +10,8 @@ export const getCards = (req: Request, res: Response) => {
     .catch(() => res.status(DEFAULT_ERROR).send({ message: 'Ошибка сервера' }));
 };
 
-export const createCard = (req: Request, res: Response) => {
-  const id = req.user?._id;
+export const createCard = (req: IExtendedRequestId, res: Response) => {
+  const id = req.user && req.user._id;
   const { name, link } = req.body;
   card.create({ name, link, owner: id })
     .then((info) => res.status(201).send({ info }))
@@ -23,10 +24,20 @@ export const createCard = (req: Request, res: Response) => {
     });
 };
 
-export const deleteCard = (req: Request, res: Response) => {
+export const deleteCard = (req: IExtendedRequestId, res: Response) => {
   const { cardId } = req.params;
-  card.deleteOne({ cardId })
-    .orFail(new Error('NotFound'))
+  const id = req.user && req.user._id;
+  card.findOne({ cardId })
+    // .orFail(new Error('NotFound'))
+    .then((info) => {
+      if (!info) {
+        throw new Error('Карточка не найдена');
+      }
+      if (info.owner.toString() !== id) {
+        throw new Error('Карточка другого пользователя');
+      }
+      return card.deleteOne({ cardId });
+    })
     .then((info) => res.send({ info }))
     .catch((err) => {
       if (err.name === 'CastError') {
@@ -39,10 +50,10 @@ export const deleteCard = (req: Request, res: Response) => {
     });
 };
 
-export const likeCard = (req: Request, res: Response) => {
+export const likeCard = (req: IExtendedRequestId, res: Response) => {
   card.findByIdAndUpdate(
     req.params.cardId,
-    { $addToSet: { likes: req.user._id } },
+    { $addToSet: { likes: req.user && req.user._id } },
     { new: true },
   )
     .orFail(new Error('NotFound'))
@@ -58,10 +69,10 @@ export const likeCard = (req: Request, res: Response) => {
     });
 };
 
-export const dislikeCard = (req: Request, res: Response) => {
+export const dislikeCard = (req: IExtendedRequestId, res: Response) => {
   card.findByIdAndUpdate(
     req.params.cardId,
-    { $pull: { likes: req.user._id as ObjectId } },
+    { $pull: { likes: req.user && req.user._id as ObjectId } },
     { new: true },
   )
     .orFail(new Error('NotFound'))
