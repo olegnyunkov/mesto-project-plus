@@ -38,3 +38,9 @@ export const createCardValidation = celebrate({
     link: Joi.string().uri().pattern(URL),
   }),
 });
+
+export const idValidation = celebrate({
+  params: Joi.object().keys({
+    userId: Joi.string().alphanum().length(24),
+  }),
+});
