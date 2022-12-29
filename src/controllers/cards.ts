@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { ObjectId } from 'mongoose';
 import card from '../models/card';
 import { IExtendedRequestId } from '../types/model-types';
+import { ForbiddenError, NotFoundError } from '../utils/response-errors';
 
 export const getCards = (req: Request, res: Response, next: NextFunction) => {
   card.find({})
@@ -21,13 +22,13 @@ export const deleteCard = (req: IExtendedRequestId, res: Response, next: NextFun
   const { cardId } = req.params;
   const id = req.user && req.user._id;
   card.findOne({ cardId })
-    // .orFail(new Error('NotFound'))
+    .orFail(new NotFoundError('NotFound'))
     .then((info) => {
       if (!info) {
-        throw new Error('Карточка не найдена');
+        throw new NotFoundError('Карточка не найдена');
       }
       if (info.owner.toString() !== id) {
-        throw new Error('Карточка другого пользователя');
+        throw new ForbiddenError('Карточка другого пользователя');
       }
       return card.deleteOne({ cardId });
     })
@@ -41,7 +42,7 @@ export const likeCard = (req: IExtendedRequestId, res: Response, next: NextFunct
     { $addToSet: { likes: req.user && req.user._id } },
     { new: true },
   )
-    .orFail(new Error('NotFound'))
+    .orFail(new NotFoundError('NotFound'))
     .then((info) => res.send({ info }))
     .catch(next);
 };
@@ -52,7 +53,7 @@ export const dislikeCard = (req: IExtendedRequestId, res: Response, next: NextFu
     { $pull: { likes: req.user && req.user._id as ObjectId } },
     { new: true },
   )
-    .orFail(new Error('NotFound'))
+    .orFail(new NotFoundError('NotFound'))
     .then((info) => res.send({ info }))
     .catch(next);
 };
