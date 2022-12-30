@@ -3,7 +3,7 @@ import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import user from '../models/user';
 import { IExtendedRequestId } from '../types/model-types';
-import { NotFoundError, WrongDataError } from '../utils/response-errors';
+import {NotFoundError, UnauthorizedError, WrongDataError} from '../utils/response-errors';
 
 export const createUser = (req: Request, res: Response, next: NextFunction) => {
   const {
@@ -57,15 +57,15 @@ export const login = (req: Request, res: Response, next: NextFunction) => {
   user.findOne({ email }).select('+password')
     .then((info) => {
       if (!info) {
-        return Promise.reject(new WrongDataError('Неправильные почта или пароль'));
+        return Promise.reject(new UnauthorizedError('Неправильные почта или пароль'));
       }
       return bcrypt.compare(password, info.password)
         .then((matched) => {
           if (!matched) {
-            return Promise.reject(new WrongDataError('Неправильные почта или пароль'));
+            return Promise.reject(new UnauthorizedError('Неправильные почта или пароль'));
           }
           const token = jwt.sign({ _id: info._id }, JWT_SECRET, { expiresIn: '7d' });
-          res.send({ token });
+          return res.send({ token });
         });
     })
     .catch(next);

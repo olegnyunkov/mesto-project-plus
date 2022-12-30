@@ -1,3 +1,4 @@
+// eslint-disable-next-line max-classes-per-file
 export const WRONG_DATA = 400;
 export const UNAUTHORIZED = 401;
 export const FORBIDDEN = 403;
@@ -38,5 +39,14 @@ export class NotFoundError extends Error {
   constructor(message: string) {
     super(message);
     this.status = NOT_FOUND;
+  }
+}
+
+export class UserExistsError extends Error {
+  status: number;
+
+  constructor(message: string) {
+    super(message);
+    this.status = USER_EXISTS;
   }
 }

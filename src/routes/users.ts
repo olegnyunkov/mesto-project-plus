@@ -4,10 +4,12 @@ import {
 } from '../controllers/users';
 import { idValidation, updateAvatarValidation, updateProfileValidation } from '../utils/validation';
 
-export const userRouter = Router();
+const userRouter = Router();
 
 userRouter.get('/users', getUsers);
 userRouter.get('/users/:userId', idValidation, getUserId);
 userRouter.get('/users/me', getProfile);
 userRouter.patch('/users/me', updateProfileValidation, updateProfile);
 userRouter.patch('/users/me/avatar', updateAvatarValidation, updateAvatar);
+
+export default userRouter;

@@ -3,7 +3,7 @@ import jwt from 'jsonwebtoken';
 import { IExtendedRequest } from '../types/model-types';
 import { UnauthorizedError } from '../utils/response-errors';
 
-export const checkAuth = (req: IExtendedRequest, res: Response, next: NextFunction) => {
+const checkAuth = (req: IExtendedRequest, res: Response, next: NextFunction) => {
   const { authorization } = req.headers;
   const { JWT_SECRET = 'super-secret-key' } = process.env;
   if (!authorization || !authorization.startsWith('Bearer ')) {
@@ -19,3 +19,5 @@ export const checkAuth = (req: IExtendedRequest, res: Response, next: NextFuncti
   req.user = payload;
   next();
 };
+
+export default checkAuth;
